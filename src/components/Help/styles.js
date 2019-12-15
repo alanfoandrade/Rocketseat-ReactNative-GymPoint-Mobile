@@ -8,8 +8,6 @@ export const Container = styled.View`
   border: 1px solid #ddd;
   border-radius: 4px;
   padding: 20px;
-
-  align-items: center;
 `;
 
 export const OrderTitle = styled.View`

@@ -1,11 +1,11 @@
 import styled from 'styled-components/native';
 
-import Help from '../../components/Help';
+import Help from '../../../components/Help';
 
 export const HelpOrderList = styled.FlatList.attrs({
   showsVerticalScrollIndicator: false,
 })`
-  margin-top: 20px;
+  margin: 20px 0 70px;
 `;
 
 export const UHelp = styled(Help)`

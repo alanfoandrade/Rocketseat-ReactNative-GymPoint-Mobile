@@ -1,19 +1,20 @@
 import React, { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
-import { Alert } from 'react-native';
-import Icon from 'react-native-vector-icons/MaterialIcons';
+import { Alert, TouchableOpacity } from 'react-native';
 import { parseISO, formatRelative } from 'date-fns';
 import pt from 'date-fns/locale/pt';
 import PropTypes from 'prop-types';
-import api from '../../services/api';
+import { withNavigationFocus } from 'react-navigation';
 
-import Button from '../../components/Button';
+import api from '../../../services/api';
 
-import DefaultLayout from '../__layout/DefaultLayout';
+import Button from '../../../components/Button';
+
+import DefaultLayout from '../../__layout/DefaultLayout';
 
 import { HelpOrderList, UHelp } from './styles';
 
-export default function HelpOrder() {
+function HelpOrders({ navigation, isFocused }) {
   const [helporders, setHelpOrders] = useState([]);
 
   const { id } = useSelector(state => state.student.profile);
@@ -40,32 +41,35 @@ export default function HelpOrder() {
       }
     }
     loadHelpOrders();
-  }, [id]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isFocused]);
 
   return (
     <DefaultLayout>
-      <Button loading={false} onPress={() => {}}>
+      <Button onPress={() => navigation.navigate('AddHelpOrder')}>
         Novo pedido de auxilio
       </Button>
+
       <HelpOrderList
         data={helporders}
         keyExtractor={item => String(item.id)}
-        renderItem={({ item }) => <UHelp data={item} />}
+        renderItem={({ item: helporder }) => (
+          <TouchableOpacity
+            onPress={() => navigation.navigate('CheckAnswer', { helporder })}
+          >
+            <UHelp data={helporder} />
+          </TouchableOpacity>
+        )}
       />
-      <HelpOrderList />
     </DefaultLayout>
   );
 }
 
-const tabBarIcon = ({ tintColor }) => (
-  <Icon name="live-help" size={22} color={tintColor} />
-);
-
-tabBarIcon.propTypes = {
-  tintColor: PropTypes.string.isRequired,
+HelpOrders.propTypes = {
+  navigation: PropTypes.shape({
+    navigate: PropTypes.func,
+  }).isRequired,
+  isFocused: PropTypes.bool.isRequired,
 };
 
-HelpOrder.navigationOptions = {
-  tabBarLabel: 'Pedir ajuda',
-  tabBarIcon,
-};
+export default withNavigationFocus(HelpOrders);

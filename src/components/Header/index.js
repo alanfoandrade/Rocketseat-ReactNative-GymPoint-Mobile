@@ -1,11 +1,13 @@
 import React from 'react';
 
-import { Container, Logo } from './styles';
+import HeaderLogo from '../HeaderLogo';
 
-export default function Header({ logo }) {
+import { Container } from './styles';
+
+export default function Header() {
   return (
     <Container>
-      <Logo source={logo} />
+      <HeaderLogo />
     </Container>
   );
 }
