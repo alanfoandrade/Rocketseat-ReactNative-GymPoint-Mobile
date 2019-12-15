@@ -19,9 +19,8 @@ export function* signIn({ payload }) {
   } catch (err) {
     Alert.alert(
       'Falha na autenticação',
-      err.response
-        ? err.response.data.message
-        : 'Verifique os dados, tente novamente'
+      (err.response && err.response.data.error) ||
+        'Verifique os dados, tente novamente'
     );
 
     yield put(signFailure());
