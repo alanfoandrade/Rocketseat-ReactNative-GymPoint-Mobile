@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react';
-
-import { useSelector, useDispatch } from 'react-redux';
+import { Alert } from 'react-native';
+import { useSelector } from 'react-redux';
 import { parseISO, formatRelative } from 'date-fns';
 import pt from 'date-fns/locale/pt';
 import PropTypes from 'prop-types';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import { checkRequest } from '../../store/modules/checkin/actions';
+
 import api from '../../services/api';
 
 import Button from '../../components/Button';
@@ -15,39 +15,55 @@ import DefaultLayout from '../__layout/DefaultLayout';
 import { CheckInList, UCheck } from './styles';
 
 export default function CheckIn() {
-  const dispatch = useDispatch();
   const [checkins, setCheckins] = useState([]);
+  const [loading, setLoading] = useState(false);
 
   const { id } = useSelector(state => state.student.profile);
-  const { loading } = useSelector(state => state.checkin);
 
   useEffect(() => {
     async function loadCheckins() {
-      const response = await api.get(`/students/${id}/checkins`);
+      try {
+        const response = await api.get(`/students/${id}/checkins`);
 
-      const checkFormatted = response.data.map(check => ({
-        ...check,
-        index: response.data.findIndex(c => c._id === check._id) + 1,
-        dateParsed: formatRelative(parseISO(check.createdAt), new Date(), {
-          locale: pt,
-          addSuffix: true,
-        }),
-      }));
+        const checkFormatted = response.data.map(check => ({
+          ...check,
+          index: response.data.findIndex(c => c._id === check._id) + 1,
+          dateParsed: formatRelative(parseISO(check.createdAt), new Date(), {
+            locale: pt,
+            addSuffix: true,
+          }),
+        }));
 
-      const ordenedCheckins = checkFormatted.sort(function compare(a, b) {
-        if (a.createdAt < b.createdAt) return 1;
-        if (a.createdAt > b.createdAt) return -1;
-        return 0;
-      });
+        const ordenedCheckins = checkFormatted.sort(function compare(a, b) {
+          if (a.createdAt < b.createdAt) return 1;
+          if (a.createdAt > b.createdAt) return -1;
+          return 0;
+        });
 
-      setCheckins(ordenedCheckins);
+        setCheckins(ordenedCheckins);
+      } catch (err) {
+        Alert.alert(
+          'Falha ao carregar checkins',
+          (err.response && err.response.data.error) || 'Tente novamente'
+        );
+      }
     }
 
     loadCheckins();
   }, [id, loading]);
 
-  function handleSubmit() {
-    dispatch(checkRequest(id));
+  async function handleSubmit() {
+    try {
+      setLoading(true);
+      await api.post(`/students/${id}/checkins`);
+      setLoading(false);
+    } catch (err) {
+      Alert.alert(
+        'Falha no checkin',
+        (err.response && err.response.data.error) || 'Tente novamente'
+      );
+      setLoading(false);
+    }
   }
 
   return (
