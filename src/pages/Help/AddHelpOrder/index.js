@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { TouchableOpacity, Alert } from 'react-native';
 import { useSelector } from 'react-redux';
 import Icon from 'react-native-vector-icons/MaterialIcons';
@@ -16,7 +16,7 @@ export default function AddHelpOrder({ navigation }) {
 
   const { id } = useSelector(state => state.student.profile);
 
-  async function handleSubmit() {
+  const handleSubmit = useCallback(async () => {
     try {
       setLoading(true);
 
@@ -32,7 +32,8 @@ export default function AddHelpOrder({ navigation }) {
       );
       setLoading(false);
     }
-  }
+  }, [id, navigation, question]);
+
   return (
     <Wrapper>
       <HelpInput

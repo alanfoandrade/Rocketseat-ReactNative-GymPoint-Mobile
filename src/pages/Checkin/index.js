@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { Alert } from 'react-native';
 import { useSelector } from 'react-redux';
 import { parseISO, formatRelative } from 'date-fns';
@@ -20,39 +20,35 @@ export default function CheckIn() {
 
   const { id } = useSelector(state => state.student.profile);
 
-  useEffect(() => {
-    async function loadCheckins() {
-      try {
-        const response = await api.get(`/students/${id}/checkins`);
+  const loadCheckins = useCallback(async () => {
+    try {
+      const response = await api.get(`/students/${id}/checkins`);
 
-        const checkFormatted = response.data.map(check => ({
-          ...check,
-          index: response.data.findIndex(c => c._id === check._id) + 1,
-          dateParsed: formatRelative(parseISO(check.createdAt), new Date(), {
-            locale: pt,
-            addSuffix: true,
-          }),
-        }));
+      const checkFormatted = response.data.map(check => ({
+        ...check,
+        index: response.data.findIndex(c => c._id === check._id) + 1,
+        dateParsed: formatRelative(parseISO(check.createdAt), new Date(), {
+          locale: pt,
+          addSuffix: true,
+        }),
+      }));
 
-        const ordenedCheckins = checkFormatted.sort(function compare(a, b) {
-          if (a.createdAt < b.createdAt) return 1;
-          if (a.createdAt > b.createdAt) return -1;
-          return 0;
-        });
+      const ordenedCheckins = checkFormatted.sort(function compare(a, b) {
+        if (a.createdAt < b.createdAt) return 1;
+        if (a.createdAt > b.createdAt) return -1;
+        return 0;
+      });
 
-        setCheckins(ordenedCheckins);
-      } catch (err) {
-        Alert.alert(
-          'Falha ao carregar checkins',
-          (err.response && err.response.data.error) || 'Tente novamente'
-        );
-      }
+      setCheckins(ordenedCheckins);
+    } catch (err) {
+      Alert.alert(
+        'Falha ao carregar checkins',
+        (err.response && err.response.data.error) || 'Tente novamente'
+      );
     }
+  }, [id]);
 
-    loadCheckins();
-  }, [id, loading]);
-
-  async function handleSubmit() {
+  const handleSubmit = useCallback(async () => {
     try {
       setLoading(true);
       await api.post(`/students/${id}/checkins`);
@@ -64,7 +60,11 @@ export default function CheckIn() {
       );
       setLoading(false);
     }
-  }
+  }, [id]);
+
+  useEffect(() => {
+    loadCheckins();
+  }, [id, loadCheckins, loading]);
 
   return (
     <DefaultLayout>

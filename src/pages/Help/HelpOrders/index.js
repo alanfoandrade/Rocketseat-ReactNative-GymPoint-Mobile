@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import { Alert, TouchableOpacity } from 'react-native';
 import { parseISO, formatRelative } from 'date-fns';
@@ -19,30 +19,32 @@ function HelpOrders({ navigation, isFocused }) {
 
   const { id } = useSelector(state => state.student.profile);
 
-  useEffect(() => {
-    async function loadHelpOrders() {
-      try {
-        const response = await api.get(`/students/${id}/help-orders`);
+  const loadHelpOrders = useCallback(async () => {
+    try {
+      const response = await api.get(`/students/${id}/help-orders`);
 
-        const helpFormatted = response.data.map(help => ({
-          ...help,
-          dateParsed: formatRelative(parseISO(help.createdAt), new Date(), {
-            locale: pt,
-            addSuffix: true,
-          }),
-        }));
+      const helpFormatted = response.data.map(help => ({
+        ...help,
+        dateParsed: formatRelative(parseISO(help.createdAt), new Date(), {
+          locale: pt,
+          addSuffix: true,
+        }),
+      }));
 
-        setHelpOrders(helpFormatted);
-      } catch (err) {
-        Alert.alert(
-          'Falha ao carregar pedidos de ajuda',
-          (err.response && err.response.data.error) || 'Tente novamente'
-        );
-      }
+      setHelpOrders(helpFormatted);
+    } catch (err) {
+      Alert.alert(
+        'Falha ao carregar pedidos de ajuda',
+        (err.response && err.response.data.error) || 'Tente novamente'
+      );
     }
-    loadHelpOrders();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isFocused]);
+  }, [id]);
+
+  useEffect(() => {
+    if (isFocused) {
+      loadHelpOrders();
+    }
+  }, [isFocused, loadHelpOrders]);
 
   return (
     <DefaultLayout>
